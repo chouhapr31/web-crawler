@@ -16,14 +16,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class SiteMapper {
-	public static final String xmlFilePath = "C:\\Windows\\Temp\\sitemap.xml";
+	public static String xmlFilePath = "";
 	private Document document = null;
 	private Element root = null;
 	private DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
 	private TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
-	public SiteMapper() {
+	public SiteMapper(String path) {
 		try {
+			this.xmlFilePath = path;
 			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
 			document = documentBuilder.newDocument();
 

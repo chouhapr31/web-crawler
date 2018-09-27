@@ -14,7 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class Crawler {
-//links is to make sure we maintain the history
+	// links is to make sure we maintain the history
 	private static HashSet<String> links = new HashSet<String>();
 	// internalLinksUnique is to keep the unique internal links
 	private static Map<String, Set<String>> internalLinksUnique = new HashMap<>();
@@ -22,14 +22,16 @@ public class Crawler {
 	private static Set<String> externalLinksUnique = new HashSet<String>();
 	// mapSetOfImages is to keep the unique static contents
 	private static Map<String, Set<String>> mapSetOfImages = new HashMap<>();
+	private static String parentURL = "";
 
-	public Map<String, Set<String>> get(String url) {
+	public void search(String url, String path) {
+		parentURL = url;
+		SiteMapper s = new SiteMapper(path);
 		HashMap<String, Map<String, Set<String>>> map = getLinksDetail(url);
-		SiteMapper s = new SiteMapper();
 		s.map(url);
 		Collection<Map<String, Set<String>>> values = map.values();
 
-		System.out.println("Iterating child links start");
+		System.out.println("Searching and Iterating links start");
 
 		/*
 		 * Iterating child links
@@ -46,7 +48,7 @@ public class Crawler {
 					getLinksDetail(links);
 			}
 		}
-		System.out.println("internal mapping start");
+		System.out.println(" Iterating Internal Links ");
 
 		/*
 		 * Internal links mapping
@@ -61,14 +63,14 @@ public class Crawler {
 				String links = (String) setOfUniqueLinksIterator.next();
 				// if links end with .pdf then its a static content else its a links
 				if (links.endsWith(".pdf")) {
-					s.staticMap(key, links, "https://www.prudential.co.uk/");
+					s.staticMap(key, links, parentURL);
 				} else {
-					s.mapToChild("https://www.prudential.co.uk/", links);
+					s.mapToChild(parentURL, links);
 				}
 			}
 		}
 
-		System.out.println("External mapping start");
+		System.out.println("Iterating External links");
 
 		/*
 		 * Iterating and mapping External links
@@ -80,7 +82,7 @@ public class Crawler {
 			s.eMap(links);
 		}
 
-		System.out.println("Images mapping start");
+		System.out.println("Static content mapping start");
 		/*
 		 * Iterating images and mapping it
 		 */
@@ -92,20 +94,14 @@ public class Crawler {
 
 			while (valuesIterator.hasNext()) {
 				String image = (String) valuesIterator.next();
-				s.staticMap(key, image, "https://www.prudential.co.uk/");
+				s.staticMap(key, image, parentURL);
 			}
 		}
 		/*
 		 * transforming the logical xml to actual xml file
 		 */
 		s.transform();
-		return internalLinksUnique;
-	}
-
-	public static void main(String[] args) {
-		Crawler c = new Crawler();
-		c.get("https://www.prudential.co.uk/");
-
+		// return internalLinksUnique;
 	}
 
 	public HashMap<String, Map<String, Set<String>>> getLinksDetail(String url) {
@@ -125,7 +121,7 @@ public class Crawler {
 				for (Element headline : newsHeadlines) {
 
 					String link = headline.absUrl("href");
-					if (link.contains("https://www.prudential.co.uk/")) {
+					if (link.contains(parentURL)) {
 						internalLinks.add(headline.absUrl("href"));
 					} else {
 						externalLinks.add(headline.absUrl("href"));
@@ -141,9 +137,9 @@ public class Crawler {
 				listOfLinks.put("externalLinks", externalLinks);
 				linkMap.put(url, listOfLinks);
 			} catch (IOException e) {
-				System.out.println("catch url " + url);
+				// System.out.println("catch url " + url);
 				getLinksDetail(url);
-				System.out.println("End catch url " + url);
+				// System.out.println("End catch url " + url);
 			}
 			mapSetOfImages.put(url, setOfImages);
 			internalLinksUnique.put(url, internalLinks);
